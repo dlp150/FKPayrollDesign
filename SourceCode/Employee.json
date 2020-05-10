@@ -1,0 +1,13 @@
+{
+  "Employees":[
+    {"dues":0.0,"isPartofUnion":false,"paymentMode":"Cash","name":"abcd","joiningDate":"12\/01\/2020","id":1001},
+    {"dues":0.0,"isPartofUnion":false,"paymentMode":"Cash","name":"egf","joiningDate":"31\/05\/2020","id":1002},
+    {"dues":0.0,"isPartofUnion":false,"paymentMode":"abc","name":"xyz","joiningDate":Wed Feb 23 00:00:00 IST 2011,"id":1003}
+  ],
+  "HourlyPaidEmployees":[
+    {"hourRate":500.0,"id":1001,"hoursWorked":[10,7,6,9,11]},
+    {"hourRate":505.0,"id":1002,"hoursWorked":[9,8,8,9,10]},
+    {"hourRate":123.0,"id":1003,"hoursWorked":[0,0,0,0,0]}
+  ],
+  "LastIdUsed":1003
+}
