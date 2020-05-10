@@ -7,10 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Collections;
+import java.util.*;
 
 class EmployeeUnion {
     public static double dueRate;  //   per week
@@ -125,6 +122,60 @@ class HourlyPaidEmployee extends Employee {
     }
 }
 
+class sales {
+    public Date salesDate;
+    public double amount;
+
+    public sales(Date salesDate,double amount){
+        this.salesDate = salesDate;
+        this.amount = amount;
+    }
+}
+
+class MonthlyPaidEmployee extends Employee {
+    private double salary;
+    private double salesRate;
+    ArrayList<sales> salesDone;
+
+    public MonthlyPaidEmployee(String name,int id,String paymentMode,Date joiningDate,double salary,double salesRate) {
+        super(name,id,paymentMode,joiningDate);
+        this.salary = salary;
+        this.salesRate = salesRate;
+        salesDone = new ArrayList<>();
+    }
+    public MonthlyPaidEmployee(){
+        this("",0,"Cash",new Date(),0.0,0.0);
+    }
+
+    public double getSalary() { return salary; }
+    public double getSalesRate() { return salesRate; }
+    public ArrayList<sales> getSalesDetails() { return salesDone; }
+
+    public double salesAmount() {
+        double total = 0;
+        for(sales sale : salesDone){
+            total = total + sale.amount;
+        }
+        return total;
+    }
+
+    public double calculatePayment(){
+        double total = getSalary();
+        if(hasUnionMemberShip()) total = total - (EmployeeUnion.dueRate * 4);
+        total = total + (salesAmount()*getSalesRate());
+        return total;
+    }
+
+    public void getPaySlip() {
+        System.out.println("Name : " + this.getName());
+        System.out.println("ID : " + this.getId());
+        System.out.println("Salary : " + this.getSalary());
+        System.out.println("Dues : " + (EmployeeUnion.dueRate*4));
+        System.out.println("salesAmount : " + salesAmount());
+        System.out.println("Total Payable Amount : " + calculatePayment());
+    }
+}
+
 public class Main {
     public static void main(String[] args) throws ParseException, java.text.ParseException, IOException {
         Scanner scan = new Scanner(System.in);
@@ -183,19 +234,20 @@ public class Main {
             System.out.print("Enter the hourRate : "); hourRate = scan.nextDouble();
             Date d1 = myFormat.parse(joiningDate);
             HourlyPaidEmployee newEmp = new HourlyPaidEmployee(name, Math.toIntExact(id),paymentMode,d1,hourRate);
+
             JSONObject obj = new JSONObject();
             JSONArray list = new JSONArray();
             JSONParser parser = new JSONParser();
             obj = (JSONObject) parser.parse(new FileReader("Employee.json"));
             list = (JSONArray) obj.get("Employees");
             JSONObject obj1 = new JSONObject();
-//            @SuppressWarnings("unchecked");
+
             obj1.put("name", newEmp.getName());
             obj1.put("id", newEmp.getId());
             obj1.put("dues",0.0);
             obj1.put("isPartofUnion", newEmp.hasUnionMemberShip());
             obj1.put("paymentMode", newEmp.getPaymentMode());
-            obj1.put("joiningDate", newEmp.getJoiningDate());
+            obj1.put("joiningDate",  myFormat.format(newEmp.getJoiningDate()));
             list.add(obj1);
 
             obj.put("Employees",list);
@@ -218,8 +270,59 @@ public class Main {
                 file.flush();
             } catch (Exception e) { e.printStackTrace(); }
 
-            System.out.print(newEmp.getId());
+//            System.out.print(newEmp.getId());
         }
+        else{
+            String name,paymentMode,joiningDate;
+            Long id = generateId();
+            boolean ispartofUnion;
+            Double salary,salesRate;
+            System.out.print("Enter the name : "); name = scan.next();
+            System.out.print("Enter the joiningDate : "); joiningDate = scan.next();
+            System.out.print("Enter the paymentMode : "); paymentMode = scan.next();
+            System.out.print("Is Employee part of Union : ");
+            String t = scan.next();
+            if(t.equals("yes")) ispartofUnion = true;
+            else ispartofUnion = false;
+            System.out.print("Enter the Salary : "); salary = scan.nextDouble();
+            System.out.print("Enter the SalesRate : "); salesRate = scan.nextDouble();
+            Date d1 = myFormat.parse(joiningDate);
 
+            MonthlyPaidEmployee newEmp = new MonthlyPaidEmployee(name, Math.toIntExact(id),paymentMode,d1,salary,salesRate);
+
+            JSONObject obj = new JSONObject();
+            JSONArray list = new JSONArray();
+            JSONParser parser = new JSONParser();
+            obj = (JSONObject) parser.parse(new FileReader("Employee.json"));
+            list = (JSONArray) obj.get("Employees");
+            JSONObject obj1 = new JSONObject();
+
+            obj1.put("name", newEmp.getName());
+            obj1.put("id", newEmp.getId());
+            obj1.put("dues",0.0);
+            obj1.put("isPartofUnion", newEmp.hasUnionMemberShip());
+            obj1.put("paymentMode", newEmp.getPaymentMode());
+            obj1.put("joiningDate", myFormat.format(newEmp.getJoiningDate()));
+            list.add(obj1);
+
+            obj.put("Employees",list);
+
+            list = (JSONArray) obj.get("MonthlyPaidEmployees");
+
+            JSONObject obj2 = new JSONObject();
+            obj2.put("id",newEmp.getId());
+            obj2.put("salary",newEmp.getSalary());
+            obj2.put("salesRate",newEmp.getSalesRate());
+            obj2.put("salesDone",new JSONArray());
+
+            list.add(obj2);
+            obj.put("MonthlyPaidEmployees",list);
+
+            try (FileWriter file = new FileWriter("Employee.json")){
+                file.write(obj.toString());
+                file.flush();
+            } catch (Exception e) { e.printStackTrace(); }
+
+        }
     }
 }
