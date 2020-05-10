@@ -3,9 +3,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.GenericArrayType;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -66,6 +68,12 @@ class Employee {
     public String toString(){
         return name + " " + id;
     }
+
+    public void setName(String name) { this.name = name; }
+    public void setPaymentMode(String paymentMode) {this.paymentMode = paymentMode; }
+    public void setDues(double dues) { this.dues = dues; }
+    public void setUnionMemberShip(boolean x) { this.isPartofUnion = x; }
+    public void setJoiningDate(Date d) { this.joiningDate = d; }
 }
 
 class HourlyPaidEmployee extends Employee {
@@ -89,6 +97,7 @@ class HourlyPaidEmployee extends Employee {
         this(name,id,"Cash",joiningDate,hourRate);
     }
     public HourlyPaidEmployee(String name,int id) { this(name,id,"Cash",new Date(),defaultHourRate); }
+    public HourlyPaidEmployee(Long id) { this("",id,"",new Date(),0.0); }
     public HourlyPaidEmployee() { this("",0,"Cash",new Date(),0.0); }
     public int[] getHoursWorked() { return hoursWorked; }
     public int getHoursWorked(int d) { return hoursWorked[d]; }
@@ -119,6 +128,26 @@ class HourlyPaidEmployee extends Employee {
         }
         System.out.println("Total Dues : " + calculateDues());
         System.out.println("Total Payable Amount : " + calculatePayment());
+    }
+
+    public static HourlyPaidEmployee getDetails(Long id) throws IOException, ParseException {
+        HourlyPaidEmployee emp = new HourlyPaidEmployee(id);
+        JSONObject obj = new JSONObject();
+        JSONParser parser = new JSONParser();
+        JSONArray list = new JSONArray();
+        obj = (JSONObject) parser.parse(new FileReader("Employee.json"));
+        list = (JSONArray) obj.get("Employees");
+        Iterator<JSONObject> it = list.iterator();
+        while (it.hasNext()){
+            JSONObject obj1 = it.next();
+            if(obj1.get("id").equals(id)){
+                emp.setName((String) obj1.get("name"));
+                emp.setDues((Double) obj1.get("dues"));
+                emp.setUnionMemberShip((Boolean) obj1.get("isPartofUnion"));
+                emp.setPaymentMode((String) obj1.get("paymentMode"));
+                emp.setJoiningDate((Date) obj1.get("joiningDate"));
+            }
+        }
     }
 }
 
@@ -181,13 +210,14 @@ public class Main {
         Scanner scan = new Scanner(System.in);
         SimpleDateFormat myFormat = new SimpleDateFormat("dd/MM/yyyy");
 
-        System.out.println("Control Details : ");
-        System.out.println("Enter 1 to Add a new Employee");
-        System.out.println("Enter 0 to Exit");
-
         while(true) {
+            System.out.println("Control Details : ");
+            System.out.println("Enter 1 to Add a new Employee");
+            System.out.println("Enter 3 to To get PayMentDetails");
+            System.out.println("Enter 0 to Exit");
+
             int operation = scan.nextInt();
-            if(operation == 1){
+            if(operation == 1) {
                 addNewEmployee();
             }
             else{
